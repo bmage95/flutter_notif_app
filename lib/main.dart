@@ -83,7 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
         AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
   }
-12
   Future<void> _requestPermissions() async {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
