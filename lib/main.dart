@@ -97,36 +97,34 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _scheduleNotification() async {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-
-    scheduledDate = scheduledDate.subtract(Duration(minutes: _reminderOption));
-
-    // Debugging print statements
-    print('Current time: $now');
-    print('Scheduled time before adjustment: $scheduledDate');
-
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    print('Final scheduled time: $scheduledDate');
+    final int currentDayOfWeek = now.weekday; // 1: Monday, 2: Tuesday, ..., 7: Sunday
 
     for (int i = 0; i < 7; i++) {
-      final scheduledDateForDay = scheduledDate.add(Duration(days: i));
-      print('Scheduling notification for: $scheduledDateForDay');
+      final int targetDayOfWeek = i + 1; // 1: Monday, 2: Tuesday, ..., 7: Sunday
+
+      tz.TZDateTime scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
+
+      scheduledDate = scheduledDate.subtract(Duration(minutes: _reminderOption));
+
+      // Adjust the scheduled date to the target day of the week
+      int daysDifference = targetDayOfWeek - currentDayOfWeek;
+      if (daysDifference < 0) daysDifference += 7; // If the target day is in the next week
+      scheduledDate = scheduledDate.add(Duration(days: daysDifference));
+
+      print('Scheduling notification for: ${_getDayOfWeek(targetDayOfWeek)} at $scheduledDate');
 
       await flutterLocalNotificationsPlugin.zonedSchedule(
         i,
         'Reminder',
-        'This is your scheduled reminder!',
-        scheduledDateForDay,
+        'This is your scheduled reminder for ${_getDayOfWeek(targetDayOfWeek)}!',
+        scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'daily_notifications',
@@ -141,29 +139,27 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _scheduleSimpleNotification() async {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    final tz.TZDateTime scheduledDate = now.add(const Duration(minutes: 1));
-
-    print('Scheduling simple notification for: $scheduledDate');
-
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
-      'Simple Reminder',
-      'This is your simple reminder!',
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'simple_notifications',
-          'Simple reminders',
-        ),
-      ),
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
+  String _getDayOfWeek(int day) {
+    switch (day) {
+      case 1:
+        return 'Sunday';
+      case 2:
+        return 'Monday';
+      case 3:
+        return 'Tuesday';
+      case 4:
+        return 'Wednesday';
+      case 5:
+        return 'Thursday';
+      case 6:
+        return 'Friday';
+      case 7:
+        return 'Saturday';
+      default:
+        return '';
+    }
   }
+
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
