@@ -134,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
-        matchDateTimeComponents: DateTimeComponents.time,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
       );
     }
   }
